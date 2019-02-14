@@ -1,0 +1,16 @@
+[Unit]
+Description=Python api handler for haproxy
+After=network.target remote-fs.target nss-lookup.target
+ 
+[Service]
+ExecStart=/etc/webapi/pyrest/api.py
+ExecStartPost=/bin/bash -c '/usr/bin/sleep 1; [ -s /etc/webapi/pyrest/apistate ] && /usr/bin/curl -X POST -H "Content-Type: application/json" -d "`cat /etc/webapi/pyrest/apistate`" http://127.0.0.1:8080/api/current'
+ExecStartPost=/bin/bash -c 'cat /dev/null> /etc/webapi/pyrest/apistate'
+ExecStop=/bin/bash -c 'curl http://127.0.0.1:8080/api/current > /etc/webapi/pyrest/apistate'
+ExecStop=/usr/bin/kill -2 $MAINPID
+KillMode=mixed
+PrivateTmp=true
+Restart=on-failure
+ 
+[Install]
+WantedBy=multi-user.target
